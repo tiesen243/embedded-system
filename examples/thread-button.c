@@ -28,18 +28,15 @@ int main(int argc, char *argv[]) {
   pthread_t thread_1 =
       pthread_create(&thread_1, NULL, btn_polling, (void *)"Button thread");
 
-  for (int i = 0; i < 4; i++)
-    ioctl(leds_fd, 0, i);
+  for (int idx = 0; idx < 4; idx++)
+    ioctl(leds_fd, 0, idx);
 
-  int led_id = 0;
   while (1) {
-    ioctl(leds_fd, 1, led_id);
-    sleep_ms(time_ms);
-    ioctl(leds_fd, 0, led_id);
-
-    led_id++;
-    if (led_id == 4)
-      led_id = 0;
+    for (int idx = 0; idx < 4; idx++) {
+      ioctl(leds_fd, 1, idx);
+      sleep_ms(time_ms);
+      ioctl(leds_fd, 0, idx);
+    }
   }
 
   close(buttons_fd);
