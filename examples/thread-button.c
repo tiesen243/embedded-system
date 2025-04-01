@@ -13,9 +13,6 @@ void sleep_ms(int ms) { usleep(ms * 1000); }
 void *btn_polling(void *param);
 
 int main(int argc, char *argv[]) {
-  const char *thread_params = "Button thread";
-  pthread_t thread_1;
-
   leds_fd = open("/dev/leds", O_RDONLY);
   if (leds_fd < 0) {
     perror("open leds");
@@ -28,8 +25,8 @@ int main(int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
 
-  thread_1 =
-      pthread_create(&thread_1, NULL, btn_polling, (void *)thread_params);
+  pthread_t thread_1 =
+      pthread_create(&thread_1, NULL, btn_polling, (void *)"Button thread");
 
   for (int i = 0; i < 4; i++)
     ioctl(leds_fd, 0, i);
