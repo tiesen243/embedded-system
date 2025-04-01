@@ -8,8 +8,6 @@
 int leds_fd, buttons_fd;
 static int time_ms = 1000;
 
-void sleep_ms(int ms) { usleep(ms * 1000); }
-
 void *btn_polling(void *param);
 
 int main(int argc, char *argv[]) {
@@ -33,7 +31,7 @@ int main(int argc, char *argv[]) {
   while (1) {
     for (int idx = 0; idx < 4; idx++) {
       ioctl(leds_fd, 1, idx);
-      sleep_ms(time_ms);
+      usleep(time_ms * 1000);
       ioctl(leds_fd, 0, idx);
     }
   }
@@ -55,14 +53,14 @@ void *btn_polling(void *param) {
     }
 
     if (curr_btn[0] != prev_btn[0]) {
-      sleep_ms(300);
+      usleep(300 * 1000);
       prev_btn[0] = curr_btn[0];
       time_ms += 50;
       printf("K1 is pressed/released, time_ms = %dms\n", time_ms);
     }
 
     if (curr_btn[1] != prev_btn[1]) {
-      sleep_ms(300);
+      usleep(300 * 1000);
       prev_btn[1] = curr_btn[1];
       time_ms -= 50;
       if (time_ms < 100)

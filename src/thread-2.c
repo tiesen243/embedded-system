@@ -6,8 +6,9 @@
 #include <unistd.h>
 
 int pwm_fd, buttons_fd;
-static int freq = 1000;
+static int freq = 500;
 
+void sleep_ms(int ms) { usleep(ms * 1000); }
 void set_buzzer_freq(int fd, int freq);
 
 void *btn_polling(void *param);
@@ -27,8 +28,15 @@ int main(int argc, char *argv[]) {
 
   pthread_t t = pthread_create(&t, NULL, btn_polling, (void *)"Button thread");
 
-  while (1)
+  while (1) {
     set_buzzer_freq(pwm_fd, freq);
+    sleep(1);
+
+    freq += 100;
+    if (freq > 3000)
+      freq = 500;
+    printf("Current freq = %dHz", freq);
+  }
 
   close(buttons_fd);
   close(pwm_fd);
@@ -47,20 +55,20 @@ void *btn_polling(void *param) {
     }
 
     if (curr_btn[0] != prev_btn[0]) {
-      usleep(300 * 1000);
+      sleep_ms(300);
       prev_btn[0] = curr_btn[0];
-      freq += 50;
+      freq += 100;
       if (freq >= 3000)
         freq = 3000;
       printf("K1 is pressed/released, freq = %dHz\n", freq);
     }
 
     if (curr_btn[1] != prev_btn[1]) {
-      usleep(300 * 1000);
+      sleep_ms(300);
       prev_btn[1] = curr_btn[1];
-      freq -= 50;
-      if (freq <= 50)
-        freq = 50;
+      freq -= 100;
+      if (freq <= 100)
+        freq = 100;
       printf("K2 is pressed/released, freq = %dHz\n", freq);
     }
   }
