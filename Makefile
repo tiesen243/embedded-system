@@ -1,4 +1,4 @@
-CC = arm-linux-gcc
+CC = arm-linux-gnueabi-gcc
 
 SRC_DIR = src
 BIN_DIR = bin
@@ -8,6 +8,9 @@ $(BIN_DIR):
 
 %: $(SRC_DIR)/%.c | $(BIN_DIR)
 	$(CC) $< -o $(BIN_DIR)/$@
+
+version:
+	$(CC) --version
 
 clean:
 	rm -rf $(BIN_DIR)
