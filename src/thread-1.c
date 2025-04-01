@@ -5,17 +5,17 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-int leds_fd, buttons_fd;
-static int time_ms = 1000;
+int pwm_fd, buttons_fd;
+static int freq = 1000;
 
 void sleep_ms(int ms) { usleep(ms * 1000); }
 
 void *btn_polling(void *param);
 
 int main(int argc, char *argv[]) {
-  leds_fd = open("/dev/leds", O_RDONLY);
-  if (leds_fd < 0) {
-    perror("open leds");
+  pwm_fd = open("/dev/pwm", O_RDONLY);
+  if (pwm_fd < 0) {
+    perror("open pwm");
     exit(EXIT_FAILURE);
   }
 
@@ -28,18 +28,18 @@ int main(int argc, char *argv[]) {
   pthread_t t = pthread_create(&t, NULL, btn_polling, (void *)"Button thread");
 
   for (int idx = 0; idx < 4; idx++)
-    ioctl(leds_fd, 0, idx);
+    ioctl(pwm_fd, 0, idx);
 
   while (1) {
     for (int idx = 0; idx < 4; idx++) {
-      ioctl(leds_fd, 1, idx);
-      sleep_ms(time_ms);
-      ioctl(leds_fd, 0, idx);
+      ioctl(pwm_fd, 1, idx);
+      sleep_ms(freq);
+      ioctl(pwm_fd, 0, idx);
     }
   }
 
   close(buttons_fd);
-  close(leds_fd);
+  close(pwm_fd);
 
   return EXIT_SUCCESS;
 }
@@ -57,17 +57,17 @@ void *btn_polling(void *param) {
     if (curr_btn[0] != prev_btn[0]) {
       sleep_ms(300);
       prev_btn[0] = curr_btn[0];
-      time_ms += 50;
-      printf("K1 is pressed/released, time_ms = %dms\n", time_ms);
+      freq += 50;
+      printf("K1 is pressed/released, time_ms = %dms\n", freq);
     }
 
     if (curr_btn[1] != prev_btn[1]) {
       sleep_ms(300);
       prev_btn[1] = curr_btn[1];
-      time_ms -= 50;
-      if (time_ms < 100)
-        time_ms = 100;
-      printf("K2 is pressed/released, time_ms = %dms\n", time_ms);
+      freq -= 50;
+      if (freq < 100)
+        freq = 100;
+      printf("K2 is pressed/released, time_ms = %dms\n", freq);
     }
   }
 
