@@ -9,6 +9,7 @@ int pwm_fd, buttons_fd;
 static int freq = 500, time_ms = 1000;
 
 void set_buzzer_freq(int fd, int freq);
+void stop_buzzer(int fd);
 
 void *btn_polling(void *param);
 
@@ -61,14 +62,20 @@ void *btn_polling(void *param) {
       if (curr_btn[i] != prev_btn[i]) {
         prev_btn[i] = curr_btn[i];
         if (prev_btn[i] == '0') {
-          if (i) {
+          switch (i) {
+          case 0:
+            time_ms += 100;
+            printf("K1 is released, time_ms = %dms\n", time_ms);
+            break;
+          case 1:
             time_ms -= 100;
             if (time_ms <= 100)
               time_ms = 100;
             printf("K2 is released, time_ms = %dms\n", time_ms);
-          } else {
-            time_ms += 100;
-            printf("K1 is released, time_ms = %dms\n", time_ms);
+            break;
+          case 2:
+            stop_buzzer(pwm_fd);
+            break;
           }
         }
       }
@@ -82,6 +89,14 @@ void set_buzzer_freq(int fd, int freq) {
   int ret = ioctl(fd, 1, freq);
   if (ret < 0) {
     perror("set the frequency of the buzzer");
-    exit(1);
+    exit(EXIT_FAILURE);
+  }
+}
+
+void stop_buzzer(int fd) {
+  int ret = ioctl(fd, 0);
+  if (ret < 0) {
+    perror("stop the buzzer");
+    exit(EXIT_FAILURE);
   }
 }
