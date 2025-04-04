@@ -2,6 +2,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
 
@@ -121,24 +122,21 @@ void *btn_polling(void *param) {
 void *input_polling(void *param) {
   while (1) {
     printf("\nn = ");
-    scanf(" %c", &n);
+    scanf("%c", &n);
 
-    char x;
+    int x;
     printf("\nx = ");
-    scanf(" %c", &x);
+    scanf("%d", &x);
 
-    if (x == ' ')
+    if (x <= 0)
       continue;
 
     int i;
 
-    fseek(f, 0, SEEK_SET);
-    for (i = 0; i < 100; i++) {
-      fputc(' ', f);
-    }
+    fwrite(" ", 1, 1, f);
 
     fseek(f, 0, SEEK_SET);
-    for (i = 0; i < x - '0'; i++) {
+    for (i = 0; i < x; i++) {
       fputc('x', f);
     }
 
