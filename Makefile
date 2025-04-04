@@ -1,4 +1,4 @@
-CC = arm-linux-gnueabi-gcc
+CC = arm-linux-gcc
 
 SRC_DIR = src
 BIN_DIR = bin

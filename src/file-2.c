@@ -4,24 +4,23 @@
 #include <unistd.h>
 
 int main(int argc, char *argv[]) {
-  char buttons[8] = {'0', '0', '0', '0', '0', '0', '0', '0'};
+  char buttons[6] = {'0', '0', '0', '0', '0', '0'};
   int buttons_fd = open("/dev/buttons", 0);
   if (buttons_fd < 0) {
     perror("Open buttons");
-    return EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
 
-  FILE *text = fopen("./input.txt", "rw");
-  int count = 0;
+  FILE *f = fopen("./input.txt", "rw");
 
   while (1) {
     int i;
-    char current_buttons[8];
+    char current_buttons[6];
 
     if (read(buttons_fd, current_buttons, sizeof(current_buttons)) !=
         sizeof(current_buttons)) {
       perror("read button: ");
-      exit(0);
+      exit(EXIT_FAILURE);
     }
 
     for (i = 0; i < sizeof(buttons) / sizeof(buttons[0]); i++) {
@@ -30,23 +29,36 @@ int main(int argc, char *argv[]) {
 
         if (buttons[i] == '0') {
           if (i == 0) {
-            char c;
+            int c, count = 0;
+
             do {
-              c = fgetc(text);
+              c = fgetc(f);
+              printf("get: %c\n", c);
               if (c == 'a')
                 count++;
             } while (c != EOF);
 
-            printf("Count: %d\n", count);
+            printf("Number of 'a' characters: %d\n", count);
           } else if (i == 1) {
+            fseek(f, 0, SEEK_SET);
+            int c;
+            while ((c = fgetc(f)) != EOF) {
+              if (c == 'a') {
+                fseek(f, -1, SEEK_CUR);
+                fputc('A', f);
+                break;
+              }
+            }
           } else if (i == 2) {
+            fseek(f, 0, SEEK_END);
+            fputc('a', f);
           }
         }
       }
     }
   }
 
+  fclose(f);
   close(buttons_fd);
-  fclose(text);
   return EXIT_SUCCESS;
 }
