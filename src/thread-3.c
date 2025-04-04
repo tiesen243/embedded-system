@@ -5,17 +5,14 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-int pwm_fd, buttons_fd;
-static int freq = 1000;
-
-void set_buzzer_freq(int fd, int freq);
-void stop_buzzer(int fd);
+int leds_fd, buttons_fd;
+static int time_ms = 1000;
 
 void *btn_polling(void *param);
 
 int main(int argc, char *argv[]) {
-  pwm_fd = open("/dev/pwm", 0);
-  if (pwm_fd < 0) {
+  leds_fd = open("/dev/leds", 0);
+  if (leds_fd < 0) {
     perror("open pwm");
     exit(EXIT_FAILURE);
   }
@@ -27,17 +24,17 @@ int main(int argc, char *argv[]) {
   }
 
   pthread_t t = pthread_create(&t, NULL, btn_polling, (void *)"Button thread");
-  set_buzzer_freq(pwm_fd, freq);
 
   while (1) {
-    usleep(500 * 1000);
-    set_buzzer_freq(pwm_fd, freq);
+    int i;
+    for (i = 0; i < 4; i++) {
+      ioctl(leds_fd, 1, i);
+      usleep(time_ms * 1000);
+      ioctl(leds_fd, 0, i);
+    }
   }
 
-  usleep(500 * 1000);
-  ioctl(pwm_fd, 0);
-  close(pwm_fd);
-
+  close(leds_fd);
   close(buttons_fd);
 
   return EXIT_SUCCESS;
@@ -53,25 +50,25 @@ void *btn_polling(void *param) {
       exit(EXIT_FAILURE);
     }
 
-    for (int i = 0; i < 3; i++) {
+    int i;
+    for (i = 0; i < 3; i++) {
       if (curr_btn[i] != prev_btn[i]) {
         prev_btn[i] = curr_btn[i];
         if (prev_btn[i] == '0') {
           switch (i) {
           case 0:
-            freq += 50;
-            if (freq >= 3000)
-              freq = 3000;
-            printf("K1 is released, freq = %dHz\n", freq);
+            time_ms += 100;
+            printf("K1 is released, time_ms = %dms\n", time_ms);
             break;
           case 1:
-            freq -= 50;
-            if (freq <= 50)
-              freq = 50;
-            printf("K2 is released, freq = %dHz\n", freq);
+            time_ms -= 100;
+            if (time_ms <= 100)
+              time_ms = 100;
+            printf("K2 is released, time_ms = %dms\n", time_ms);
             break;
-          case 3:
-            stop_buzzer(pwm_fd);
+          case 2:
+            time_ms = 1000;
+            printf("K3 is released, time_ms = %dms\n", time_ms);
             break;
           }
         }
@@ -80,20 +77,4 @@ void *btn_polling(void *param) {
   }
 
   pthread_exit(NULL);
-}
-
-void set_buzzer_freq(int fd, int freq) {
-  int ret = ioctl(fd, 1, freq);
-  if (ret < 0) {
-    perror("set the frequency of the buzzer");
-    exit(EXIT_FAILURE);
-  }
-}
-
-void stop_buzzer(int fd) {
-  int ret = ioctl(fd, 0);
-  if (ret < 0) {
-    perror("stop the buzzer");
-    exit(EXIT_FAILURE);
-  }
 }

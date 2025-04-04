@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
 }
 
 void *btn_polling(void *param) {
-  char curr_btn[2], prev_btn[2] = {'0', '0'};
+  char curr_btn[3], prev_btn[3] = {'0', '0', '0'};
 
   while (1) {
     int num = read(buttons_fd, curr_btn, sizeof(curr_btn));
@@ -58,7 +58,7 @@ void *btn_polling(void *param) {
       exit(EXIT_FAILURE);
     }
 
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < 3; i++) {
       if (curr_btn[i] != prev_btn[i]) {
         prev_btn[i] = curr_btn[i];
         if (prev_btn[i] == '0') {
