@@ -6,7 +6,7 @@
 #include <unistd.h>
 
 int pwm_fd, buttons_fd;
-static int freq = 1000;
+static int freq = 1000, is_running = 1;
 
 void set_buzzer_freq(int fd, int freq);
 void stop_buzzer(int fd);
@@ -31,7 +31,10 @@ int main(int argc, char *argv[]) {
 
   while (1) {
     usleep(500 * 1000);
-    set_buzzer_freq(pwm_fd, freq);
+    if (is_running)
+      set_buzzer_freq(pwm_fd, freq);
+    else
+      stop_buzzer(pwm_fd);
   }
 
   usleep(500 * 1000);
@@ -53,7 +56,8 @@ void *btn_polling(void *param) {
       exit(EXIT_FAILURE);
     }
 
-    for (int i = 0; i < 3; i++) {
+    int i;
+    for (i = 0; i < 3; i++) {
       if (curr_btn[i] != prev_btn[i]) {
         prev_btn[i] = curr_btn[i];
         if (prev_btn[i] == '0') {
@@ -70,7 +74,10 @@ void *btn_polling(void *param) {
               freq = 50;
             printf("K2 is released, freq = %dHz\n", freq);
             break;
-          case 3:
+          case 2:
+            is_running = !is_running;
+            printf("K3 is released, toggle buzzer %s\n",
+                   is_running ? "ON" : "OFF");
             stop_buzzer(pwm_fd);
             break;
           }
