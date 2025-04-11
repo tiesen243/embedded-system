@@ -79,4 +79,4 @@ Each project within the src/ directory includes its own set of instructions and 
 
 ## License
 
-This repository is open-source and available under the MIT License.
+This repository is open-source and available under the [MIT](LICENSE) License.
